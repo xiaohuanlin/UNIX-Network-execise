@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
+#include <signal.h>
+
 #include "utils.c"
 
 
@@ -29,13 +32,28 @@ int main() {
 
     printf("listen in %d\n", ntohs(servaddr.sin_port));
     int new_fd;
+    int pid;
     char buffer[] = "Hello\n";
+    signal(SIGCLD, logger_for_signal);
+    
     while (1) {
         new_fd = accept(fd, (struct sockaddr *)NULL, NULL);
-        printf("get new fd: %d\n", fd);
-        write(new_fd, buffer, strlen(buffer) + 1);
-        close(new_fd);
-        printf("close new fd\n");
+        if (errno == EINTR) {
+            continue;
+        }
+        if ((pid = fork()) == 0) {
+            // reduce the reference of listenfd
+            close(fd);
+            printf("get new fd: %d\n", fd);
+            write(new_fd, buffer, strlen(buffer) + 1);
+            close(new_fd);
+            printf("close new fd\n");
+            exit(0);
+        } else {
+            // reduce the reference of newfd
+            close(new_fd);
+        }
+
     };
 }
 

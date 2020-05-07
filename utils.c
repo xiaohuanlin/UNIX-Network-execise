@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/wait.h>
 
 
 // Convert the string ip address to uint32 number. Negtive number means error
@@ -29,3 +30,14 @@ uint32_t transfer_ip(const char *ip_address) {
     uint32_t true_value = ip_value[0] << 24 | ip_value[1] << 16 | ip_value[2] << 8 | ip_value[3];
     return true_value;
 }
+
+
+void logger_for_signal(int signal) {
+    pid_t pid;
+    // by call wait/waitpid, we could realese the Zombie Progress
+    // waitpid could catch all SIGCLD at same time
+    while ((pid = waitpid(-1, NULL, WNOHANG)) > 0) {
+        printf("receive sig %d from pid %d\n", signal, pid);
+    };
+    return;
+};
