@@ -2,6 +2,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <stdlib.h>
+#include <poll.h>
 #include "utils.c"
 
 
@@ -26,12 +27,37 @@ int main() {
 
     char buffer[100];
     int read_size;
-    while ((read_size = read(fd, buffer, 100)) > 0) {
-        buffer[read_size] = 0;
-        if (fputs(buffer, stdout) == EOF) {
-            exit(1);
-        };
+    struct pollfd fds[2];
+
+    fds[0].fd = fd;
+    fds[0].events = POLLIN;
+    fds[1].fd = 0; // stdin
+    fds[1].events = POLLIN;
+
+    while (1) {
+        int nready, i;
+        nready = poll(fds, 2, -1);
+        for (i = 0; i < nready; i++) {
+            if (fds[0].revents & POLLIN) {
+                // data from server
+                printf("server can read\n");
+                read_size = read(fds[0].fd, buffer, 100);
+                buffer[read_size] = 0;
+                if (fputs(buffer, stdout) == EOF) {
+                    exit(1);
+                };
+            }
+
+            if (fds[1].revents & POLLIN) {
+                // data from stdin
+                printf("stdin can read\n");
+                read_size = read(fds[1].fd, buffer, 100);
+                buffer[read_size] = 0;
+                fputs(buffer, stdout);
+            }
+        }
     }
+
     return 0;
 }
 
