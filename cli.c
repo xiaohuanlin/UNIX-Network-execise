@@ -20,10 +20,12 @@ int main() {
     conn_addr.sin_port = htons(8585);
     conn_addr.sin_addr.s_addr = htonl(transfer_ip("127.0.0.1"));
 
+    get_socket_opt(fd);
     if (connect(fd, (struct sockaddr *)(&conn_addr), sizeof(conn_addr)) < 0) {
         printf("can\'t connect\n");
         exit(1);
     };
+    get_socket_opt(fd);
 
     char buffer[100];
     int read_size;

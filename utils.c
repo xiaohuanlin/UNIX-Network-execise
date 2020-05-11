@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <netinet/tcp.h>
 
 
 // Convert the string ip address to uint32 number. Negtive number means error
@@ -41,3 +42,23 @@ void logger_for_signal(int signal) {
     };
     return;
 };
+
+
+int get_socket_opt(int fd) {
+    int value, size;
+    size = sizeof(value);
+    if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &value, &size)) {
+        return -1;
+    };
+    printf("snd buffer value %d\n", value);
+
+    if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &value, &size)) {
+        return -1;
+    };
+    printf("rcv buffer value %d\n", value);
+
+    if (getsockopt(fd, IPPROTO_TCP, TCP_MAXSEG, &value, &size)) {
+        return -1;
+    };
+    printf("MSS value %d\n", value);
+}

@@ -62,6 +62,7 @@ void do_task_with_select(int listen_fd, char* words) {
             if (errno == EINTR) {
                 continue;
             }
+            get_socket_opt(new_fd);
             FD_SET(new_fd, &rset);
             fds[cur_index++] = new_fd;
             max_fd = max_fd > new_fd ? max_fd: new_fd; 
@@ -116,7 +117,7 @@ int main() {
         printf("can\'t listen\n");
         exit(1);
     }
-
+    get_socket_opt(fd);
     printf("listen in %d\n", ntohs(servaddr.sin_port));
     int new_fd;
     int pid;
