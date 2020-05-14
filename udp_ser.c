@@ -20,6 +20,7 @@ int main() {
         exit(1);
     };
 
+    socklen_t size = sizeof(soaddr);
     char words[100] = {};
     if (recvfrom(fd, words, sizeof(words), 0, (struct sockaddr*)&soaddr, &size) < 0) {
         printf("wrong in recv\n");
