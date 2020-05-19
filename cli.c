@@ -3,11 +3,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <poll.h>
+#include <unistd.h>
+#include <errno.h>
 #include "utils.c"
 
 
 int main() {
     int fd;
+    int timeout;
     fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
         return -1;
@@ -19,12 +22,28 @@ int main() {
     conn_addr.sin_family = AF_INET;
     conn_addr.sin_port = htons(8585);
     conn_addr.sin_addr.s_addr = htonl(transfer_ip("127.0.0.1"));
+    timeout = 5;
+    echo_for_str_list(STDOUT_FILENO, "try to connect %s %s\n", "localhost", "8585");
 
-    get_socket_opt(fd);
+    // set alarm to control the timeout
+    void (*pre_sig_func)(int);
+    pre_sig_func = signal(SIGALRM, connect_alarm);
+    if (alarm(timeout) != 0) {
+        printf("already set timeout\n");
+    }
+
     if (connect(fd, (struct sockaddr *)(&conn_addr), sizeof(conn_addr)) < 0) {
+        close(fd);
+        if (errno == EINTR) {
+            errno = ETIMEDOUT;
+        }
         printf("can\'t connect\n");
         exit(1);
     };
+
+    alarm(0);
+    signal(SIGALRM, connect_alarm);
+
     get_socket_opt(fd);
 
     char buffer[100];
