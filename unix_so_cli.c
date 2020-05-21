@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 
 int main() {
@@ -12,13 +13,17 @@ int main() {
     char *path = "/tmp/test";
 
     sockfd = socket(AF_LOCAL, SOCK_STREAM, 0);
-    unlink(path);
 
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_LOCAL;
     strncpy(addr.sun_path, path, sizeof(addr.sun_path)-1);
-    bind(sockfd, (struct sockaddr*)&addr, sizeof(addr));
+    if (connect(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        exit(1);
+    };
+    printf("connect success\n");
 
-    getsockname(sockfd, (struct sockaddr*)&print_addr, &len);
-    printf("bind to %s\n", print_addr.sun_path);
+    char *test_word = "hello";
+    if (write(sockfd, test_word, strlen(test_word)) < 0) {
+        printf("write wrong");
+    };
 }
