@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <error.h>
 
 
 int main() {
@@ -18,6 +19,7 @@ int main() {
     addr.sun_family = AF_LOCAL;
     strncpy(addr.sun_path, path, sizeof(addr.sun_path)-1);
     if (connect(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("connect error");
         exit(1);
     };
     printf("connect success\n");
